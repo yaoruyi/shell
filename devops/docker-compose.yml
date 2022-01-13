@@ -9,6 +9,18 @@ volumes:
     name: gitlab-logs
   gitlab-data:
     name: gitlab-data
+  mysql-data:
+    name: mysql-data
+  mysql-conf.d:
+    name: mysql-conf.d
+  jira-data:
+    name: jira-data
+  jira-logs:
+    name: jira-logs
+  confluence-data:
+    name: confluence-data
+  confluence-logs:
+    name: confluence-logs
 services:
   gitlab:
     container_name: devops_gitlab
@@ -48,4 +60,61 @@ services:
       options:
         max-size: "500k"
         max-file: "50"
+  mysql:
+    image: mysql:5.7
+    container_name: devops_mysql57
+    restart: always
+    networks:
+      devops-net:
+        aliases:
+          - mysql
+    expose:
+      - 3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=devOps12121212
+      - TZ='Asia/Shanghai'
+    command: ['mysqld', '--default-storage-engine=INNODB','--innodb_large_prefix=ON','--innodb_default_row_format=DYNAMIC','--character-set-server=utf8mb4', '--collation-server=utf8mb4_bin','--transaction-isolation=READ-COMMITTED', '--innodb_log_file_size=1G', '--max_allowed_packet=256M','--innodb_file_format=Barracuda']
+    volumes:
+      - mysql-data:/var/lib/mysql/
+      - mysql-conf.d:/etc/mysql/conf.d/
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "500k"
+        max-file: "50"
+  jira:
+    build: ./build/jira
+    container_name: devops_jira
+    environment:
+      - TZ='Asia/Shanghai'
+    restart: always
+    networks:
+        devops-net:
+          aliases:
+            - jira
+    expose:
+      - 8080
+    volumes:
+        - jira-data:/var/atlassian/jira/
+        - jira-logs:/opt/atlassian/jira/logs/
+    depends_on:
+      - mysql
+  confluence:
+    build: ./build/confluence
+    container_name: devops_confluence
+    environment:
+      - TZ='Asia/Shanghai'
+    restart: always
+    networks:
+      devops-net:
+        aliases:
+          - confluence
+    expose:
+      - 8090
+    volumes:
+      - confluence-data:/var/atlassian/confluence/
+      - confluence-logs:/opt/atlassian/confluence/logs/
+    depends_on:
+      - mysql
   
