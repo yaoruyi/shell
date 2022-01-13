@@ -11,10 +11,8 @@ volumes:
     name: gitlab-data
   mysql-data:
     name: mysql-data
-  mysql-conf.d:
-    name: mysql-conf.d
-  jira-data:
-    name: jira-data
+  mysql-backup:
+    name: mysql-backup
   jira-logs:
     name: jira-logs
   confluence-data:
@@ -77,6 +75,7 @@ services:
     volumes:
       - mysql-data:/var/lib/mysql/
       - mysql-conf.d:/etc/mysql/conf.d/
+      - mysql-backup/:/backup/
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     logging:
       driver: "json-file"
@@ -98,6 +97,11 @@ services:
     volumes:
         - jira-data:/var/atlassian/jira/
         - jira-logs:/opt/atlassian/jira/logs/
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "500k"
+        max-file: "50"
     depends_on:
       - mysql
   confluence:
@@ -115,6 +119,11 @@ services:
     volumes:
       - confluence-data:/var/atlassian/confluence/
       - confluence-logs:/opt/atlassian/confluence/logs/
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "500k"
+        max-file: "50"
     depends_on:
       - mysql
   
