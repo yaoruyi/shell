@@ -9,7 +9,7 @@ curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
 echo -e "\033[32m mkdir \033[0m"
 mkdir -p /data/docker
 echo -e "\033[32m modify default path \033[0m"
-sed 's/dockerd/dockerd --graph \/data\/docker/g' /usr/lib/systemd/system/docker.service
+sed -i 's/dockerd/dockerd --graph \/data\/docker/g' /usr/lib/systemd/system/docker.service
 echo -e "\033[32m restart \033[0m"
 systemctl daemon-reload
 systemctl restart docker
