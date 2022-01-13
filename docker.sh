@@ -1,16 +1,16 @@
 #!/bin/sh
 cd ~
-echo "update"
+echo -e "\033[32m update \033[0m"
 yum -y update
-echo "remove old docker"
-yum remove docker  docker-common docker-selinux docker-engine
-echo "install docker lastet"
+echo -e "\033[32m remove old docker \033[0m"
+yum -y remove docker  docker-common docker-selinux docker-engine
+echo -e "\033[32m install docker lastet \033[0m"
 curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
-echo "mkdir"
+echo -e "\033[32m mkdir \033[0m"
 mkdir -p /data/docker
-echo "modify default path"
+echo -e "\033[32m modify default path \033[0m"
 sed 's/dockerd/dockerd --graph \/data\/docker/g' /usr/lib/systemd/system/docker.service
-echo "restart"
+echo -e "\033[32m restart \033[0m"
 systemctl daemon-reload
 systemctl restart docker
-echo "finished!"
+echo -e "\033[32m finished! \033[0m"
