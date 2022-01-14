@@ -1,1 +1,1 @@
-192.168.120.60 ldap-admin.devops dns.devops proxy.devops jira.devops wiki.devops gitlab.devops sonarqube.devops jenkins.devops nexus.devops
+192.168.120.60 ldap-admin.devops proxy.devops jira.devops confluence.devops gitlab.devops sonarqube.devops jenkins.devops nexus.devops
