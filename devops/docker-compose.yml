@@ -252,6 +252,8 @@ services:
   jenkins:
     image: 'jenkins/jenkins:lts'    
     container_name: devops_jenkins
+    privileged: true
+    user: root
     environment:
       - TZ='Asia/Shanghai'
     restart: always               
