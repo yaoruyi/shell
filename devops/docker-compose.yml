@@ -13,12 +13,40 @@ volumes:
     name: mysql-data
   mysql-backup:
     name: mysql-backup
+  mysql-conf.d:
+    name: mysql-conf.d
   jira-logs:
     name: jira-logs
+  jira-data:
+    name: jira-data
   confluence-data:
     name: confluence-data
   confluence-logs:
     name: confluence-logs
+  sonar-conf:
+    name: sonar-conf
+  sonar-data:
+    name: sonar-data
+  sonar-logs:
+    name: sonar-logs
+  sonar-extensions:
+    name: sonar-extensions
+  postgres-sonar:
+    name: postgres-sonar
+  postgres-sonar-data:
+    name: postgress-sonar-data
+  nexus-data:
+    name: nexus-data
+  registry:
+    name: registry
+  jenkins-data:
+    name: jenkins-data
+  ldap-var:
+    name: ldap-var
+  ldap-etc:
+    name: ldap-etc
+  ldap-admin:
+    name: ldap-admin
 services:
   gitlab:
     container_name: devops_gitlab
@@ -26,7 +54,8 @@ services:
     restart: always
     hostname: 'gitlab'
     environment:
-      GITLAB_OMNIBUS_CONFIG: |
+      - TZ='Asia/Shanghai'
+      - GITLAB_OMNIBUS_CONFIG: |
               external_url 'http://gitlab.devops'
               gitlab_rails['time_zone'] = 'Asia/Shanghai'
               gitlab_rails['gitlab_email_enabled'] = true
@@ -77,11 +106,6 @@ services:
       - mysql-conf.d:/etc/mysql/conf.d/
       - mysql-backup/:/backup/
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "500k"
-        max-file: "50"
   jira:
     build: ./build/jira
     container_name: devops_jira
@@ -126,4 +150,209 @@ services:
         max-file: "50"
     depends_on:
       - mysql
-  
+  dns:
+    image: andyshinn/dnsmasq
+    container_name: devops_dns
+    environment:
+      - TZ='Asia/Shanghai'
+    restart: always
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+    networks:
+      devops-net:
+        aliases:
+          - dns
+    ports:
+      - "53:53"
+      - "53:53/udp"
+    volumes:
+      - './etc_dnsmasq.conf:/etc/dnsmasq.conf'
+      - './etc_resolv.dnsmasq:/etc/resolv.dnsmasq'
+      - './etc_dnsmasq.hosts:/etc/dnsmasq.hosts'
+  postgres-sonar:
+    image: postgres
+    container_name: devops_postgres-sonar
+    environment:
+      - TZ='Asia/Shanghai'
+    restart: always
+    networks:
+      devops-net:
+       aliases:
+          - postgres-sonar
+    environment:
+      - POSTGRES_USER=sonar
+      - POSTGRES_PASSWORD=devOps12121212
+    volumes:
+      - postgres-sonar:/var/lib/postgresql
+      # This needs explicit mapping due to https://github.com/docker-library/postgres/blob/4e48e3228a30763913ece952c611e5e9b95c8759/Dockerfile.template#L52
+      - postgres-sonar-data:/var/lib/postgresql/data
+  sonarqube:
+    image: sonarqube
+    container_name: devops_sonarqube
+    hostname: sonarqube.devops
+    environment:
+      - TZ='Asia/Shanghai'
+    restart: always
+    depends_on:
+      - postgres-sonar
+    expose:
+      - 9000
+    environment:
+      - sonar.jdbc.url=jdbc:postgresql://postgres-sonar:5432/sonar
+      - sonar.jdbc.username=sonar
+      - sonar.jdbc.password=devOps12121212
+      - TZ='Asia/Shanghai'
+    restart: always
+    networks:
+      devops-net:
+        aliases:
+          - sonarqube   
+    volumes:
+      - sonar-conf:/opt/sonarqube/conf
+      - sonar-data:/opt/sonarqube/data
+      - sonar-logs:/opt/sonarqube/logs
+      - sonar-extensions:/opt/sonarqube/extensions
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "500k"
+        max-file: "50"
+  nexus:
+    image: sonatype/nexus3
+    container_name: devops_nexus
+    hostname: nexus.devops
+    environment:
+      - TZ='Asia/Shanghai'
+    restart: always
+    networks:
+      devops-net:
+        aliases:
+          - nexus
+    expose:
+      - 8081
+    volumes:
+     - nexus-data:/nexus-data
+  registry:
+    image: registry:2
+    container_name: devops_registry
+    environment:
+      - TZ='Asia/Shanghai'
+    restart: always
+    networks:
+      devops-net:
+        aliases:
+          - registry
+    ports:
+      - '5000:5000'
+    environment:
+      - REGISTRY_PROXY_REMOTEURL="https://docker.mirrors.ustc.edu.cn"
+    volumes:
+      - registry:/var/lib/registry
+  jenkins:
+    image: 'jenkins/jenkins:lts'    
+    container_name: devops_jenkins
+    environment:
+      - TZ='Asia/Shanghai'
+    restart: always               
+    ports:
+      - '50000:50000'
+    expose:
+      - 8080
+    volumes:                        
+      - 'jenkins-data:/var/jenkins_home'
+    networks:
+      devops-net:
+        aliases:
+          - jenkins
+  ldap:
+    image: osixia/openldap
+    container_name: devops_ldap
+    environment:
+      - TZ='Asia/Shanghai'
+    restart: always  
+    hostname: ldap.devops
+    networks:
+      devops-net:
+        aliases:
+          - ldap
+    ports:
+      - "389:389"
+      - "636:636"
+    environment:
+      - LDAP_ORGANISATION=devops-inc
+      - LDAP_DOMAIN=ldap.devops
+      - LDAP_ADMIN_PASSWORD=devOps12121212
+      - TZ='Asia/Shanghai'
+    restart: always
+    volumes:
+      - ldap-var:/var/lib/ldap
+      - ldap-etc:/etc/ldap/slapd.d
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "500k"
+        max-file: "50"
+  ldap-admin:
+    image: osixia/phpldapadmin
+    container_name: devops_ldap-admin
+    hostname: ldap-admin.devops
+    depends_on:
+      - ldap
+    networks:
+      devops-net:
+        aliases:
+          - ldap-admin
+    environment:
+      - PHPLDAPADMIN_LDAP_HOSTS=ldap
+      - PHPLDAPADMIN_HTTPS=false
+      - TZ='Asia/Shanghai'
+    restart: always
+    privileged: true
+    volumes:
+      - ldap-admin:/var/www/phpldapadmin
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "500k"
+        max-file: "50"
+  proxy:
+    image: sgrio/alpine-sslocalproxy
+    container_name: devops_proxy
+    hostname: proxy.devops
+    environment:
+    - TZ='Asia/Shanghai'
+    restart: always
+    networks:
+      devops-net:
+        aliases:
+          - proxy
+    privileged: true
+    ports:
+      - "1080:1080"
+      - "8118:8118"
+    volumes:
+      - ./ss-client.json:/etc/shadowsocks-libev/config.json
+  nginx:
+    container_name: devops_nginx
+    image: nginx:latest
+    environment:
+    - TZ='Asia/Shanghai'
+    restart: always
+    privileged: true
+    networks:
+      devops-net:
+        aliases:
+          - nginx
+    expose:
+      - 80
+    ports:
+      - 80:80
+    volumes:
+      - ./nginx/conf.d/:/etc/nginx/conf.d
+      - ./nginx/www:/var/www
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "500k"
+        max-file: "50"
