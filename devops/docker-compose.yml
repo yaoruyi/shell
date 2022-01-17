@@ -319,7 +319,7 @@ services:
         max-size: "500k"
         max-file: "50"
   proxy:
-    image: sgrio/alpine-sslocalproxy
+    build: ./build/proxy
     container_name: devops_proxy
     hostname: proxy.devops
     environment:
