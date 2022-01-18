@@ -364,6 +364,7 @@ services:
     volumes:
       - ./nginx/conf.d/:/etc/nginx/conf.d
       - ./nginx/www:/var/www
+      - ./nginx/ssl:/etc/nginx/ssl
     logging:
       driver: "json-file"
       options:
