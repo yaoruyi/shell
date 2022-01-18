@@ -56,7 +56,8 @@ services:
     environment:
       - TZ=Asia/Shanghai
       - GITLAB_OMNIBUS_CONFIG: |
-              external_url 'http://gitlab.devops'
+              external_url 'https://gitlab.devops'
+              nginx['redirect_http_to_https'] = true
               gitlab_rails['time_zone'] = 'Asia/Shanghai'
               gitlab_rails['gitlab_email_enabled'] = true
               gitlab_rails['gitlab_email_from'] = '926095480@qq.com'
@@ -111,6 +112,12 @@ services:
     container_name: devops_jira
     environment:
       - TZ=Asia/Shanghai
+      - JVM_MINIMUM_MEMORY=512m
+      - JVM_MAXIMUM_MEMORY=2048m
+      - ATL_PROXY_NAME=jira.devops
+      - ATL_PROXY_PORT=443
+      - ATL_TOMCAT_SCHEME=https
+      - ATL_TOMCAT_SECURE=true
     restart: always
     networks:
         devops-net:
@@ -133,6 +140,12 @@ services:
     container_name: devops_confluence
     environment:
       - TZ=Asia/Shanghai
+      - JVM_MINIMUM_MEMORY=1024m                 # 384m
+      - JVM_MAXIMUM_MEMORY=2048m                # 768m
+      - ATL_PROXY_NAME=confluence.devops
+      - ATL_PROXY_PORT=443
+      - ATL_TOMCAT_SCHEME=https
+      - ATL_TOMCAT_SECURE=true
     restart: always
     networks:
       devops-net:
