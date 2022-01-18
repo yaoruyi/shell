@@ -54,7 +54,7 @@ services:
     restart: always
     hostname: 'gitlab'
     environment:
-      - TZ='Asia/Shanghai'
+      - TZ=Asia/Shanghai
       - GITLAB_OMNIBUS_CONFIG: |
               external_url 'http://gitlab.devops'
               gitlab_rails['time_zone'] = 'Asia/Shanghai'
@@ -99,7 +99,7 @@ services:
       - 3306
     environment:
       - MYSQL_ROOT_PASSWORD=devOps12121212
-      - TZ='Asia/Shanghai'
+      - TZ=Asia/Shanghai
     command: ['mysqld', '--default-storage-engine=INNODB','--innodb_large_prefix=ON','--innodb_default_row_format=DYNAMIC','--character-set-server=utf8mb4', '--collation-server=utf8mb4_bin','--transaction-isolation=READ-COMMITTED', '--innodb_log_file_size=1G', '--max_allowed_packet=256M','--innodb_file_format=Barracuda']
     volumes:
       - mysql-data:/var/lib/mysql/
@@ -110,7 +110,7 @@ services:
     build: ./build/jira
     container_name: devops_jira
     environment:
-      - TZ='Asia/Shanghai'
+      - TZ=Asia/Shanghai
     restart: always
     networks:
         devops-net:
@@ -132,7 +132,7 @@ services:
     build: ./build/confluence
     container_name: devops_confluence
     environment:
-      - TZ='Asia/Shanghai'
+      - TZ=Asia/Shanghai
     restart: always
     networks:
       devops-net:
@@ -154,7 +154,7 @@ services:
     image: andyshinn/dnsmasq
     container_name: devops_dns
     environment:
-      - TZ='Asia/Shanghai'
+      - TZ=Asia/Shanghai
     restart: always
     privileged: true
     cap_add:
@@ -174,7 +174,7 @@ services:
     image: postgres
     container_name: devops_postgres-sonar
     environment:
-      - TZ='Asia/Shanghai'
+      - TZ=Asia/Shanghai
     restart: always
     networks:
       devops-net:
@@ -191,8 +191,6 @@ services:
     image: sonarqube
     container_name: devops_sonarqube
     hostname: sonarqube.devops
-    environment:
-      - TZ='Asia/Shanghai'
     restart: always
     depends_on:
       - postgres-sonar
@@ -202,7 +200,7 @@ services:
       - sonar.jdbc.url=jdbc:postgresql://postgres-sonar:5432/sonar
       - sonar.jdbc.username=sonar
       - sonar.jdbc.password=devOps12121212
-      - TZ='Asia/Shanghai'
+      - TZ=Asia/Shanghai
     restart: always
     networks:
       devops-net:
@@ -223,7 +221,7 @@ services:
     container_name: devops_nexus
     hostname: nexus.devops
     environment:
-      - TZ='Asia/Shanghai'
+      - TZ=Asia/Shanghai
     restart: always
     networks:
       devops-net:
@@ -237,7 +235,7 @@ services:
     image: registry:2
     container_name: devops_registry
     environment:
-      - TZ='Asia/Shanghai'
+      - TZ=Asia/Shanghai
     restart: always
     networks:
       devops-net:
@@ -255,7 +253,7 @@ services:
     privileged: true
     user: root
     environment:
-      - TZ='Asia/Shanghai'
+      - TZ=Asia/Shanghai
     restart: always               
     ports:
       - '50000:50000'
@@ -271,7 +269,7 @@ services:
     image: osixia/openldap
     container_name: devops_ldap
     environment:
-      - TZ='Asia/Shanghai'
+      - TZ=Asia/Shanghai
     restart: always  
     hostname: ldap.devops
     networks:
@@ -285,7 +283,7 @@ services:
       - LDAP_ORGANISATION=devops-inc
       - LDAP_DOMAIN=ldap.devops
       - LDAP_ADMIN_PASSWORD=devOps12121212
-      - TZ='Asia/Shanghai'
+      - TZ=Asia/Shanghai
     restart: always
     volumes:
       - ldap-var:/var/lib/ldap
@@ -308,7 +306,7 @@ services:
     environment:
       - PHPLDAPADMIN_LDAP_HOSTS=ldap
       - PHPLDAPADMIN_HTTPS=false
-      - TZ='Asia/Shanghai'
+      - TZ=Asia/Shanghai
     restart: always
     privileged: true
     volumes:
@@ -323,7 +321,7 @@ services:
     container_name: devops_proxy
     hostname: proxy.devops
     environment:
-    - TZ='Asia/Shanghai'
+    - TZ=Asia/Shanghai
     restart: always
     networks:
       devops-net:
@@ -339,7 +337,7 @@ services:
     container_name: devops_nginx
     image: nginx:latest
     environment:
-    - TZ='Asia/Shanghai'
+    - TZ=Asia/Shanghai
     restart: always
     privileged: true
     networks:
